@@ -1,35 +1,46 @@
 # my_codex_skills
 
-個人用の Codex Skills をまとめたリポジトリです。
+個人用の Codex Skills をまとめたリポジトリです。2026-08-31 時点の `~/.codex/skills` から、公開・再配布できる31スキルを同期しています。
 
 ## Skills
 
-| Skill | 概要 | 主な用途 | 呼び出し例 | 主な依存関係 |
-|---|---|---|---|---|
-| [`social-fetch`](./social-fetch/) | SNS投稿のURLを判定し、複数の取得手段を順番に試して、投稿者・本文・日時・反応数・メディアURLなどを共通形式に正規化します。 | X、LinkedIn、Instagram、TikTok、Bluesky、Reddit、Mastodon、Threads、Hacker Newsの投稿取得 | `$social-fetch https://x.com/example/status/123` | ネット接続。Xなどでは `agent-browser` を利用。詳細取得には任意で ScrapeCreators / Apify のAPIキー |
-| [`show-me`](./show-me/) | 会話中のテーマを、最小限の図・ツリー・擬似コード・diff・HTMLで視覚的に説明します。 | 処理フロー、ファイル構成、UI構造、変更前後の比較 | `$show-me この処理フローを図解して` | 基本機能に必須の外部依存なし。内容に応じて Mermaid / HTML を使用 |
-| [`orchestrate`](./orchestrate/) | 大きな作業を重複しない小さな担当へ分割し、複数エージェントの結果を統合するための運用Skillです。 | 調査、実装、検証を並行化したい大規模タスク | `$orchestrate このリポジトリを調査して修正して` | サブエージェントを利用できる Codex 実行環境 |
-
-## Repository structure
-
-```text
-.
-├── social-fetch/
-│   ├── SKILL.md
-│   ├── LICENSE.upstream
-│   └── references/
-├── show-me/
-│   ├── SKILL.md
-│   └── LICENSE.upstream
-├── orchestrate/
-│   ├── SKILL.md
-│   └── agents/
-└── README.md
-```
+| Skill | 概要 |
+|---|---|
+| [`archify`](./archify/) | アーキテクチャ、ワークフロー、シーケンス、データフロー、状態遷移を検証可能なHTML図にします。 |
+| [`ask-matt`](./ask-matt/) | Matt Pocock系スキルから、状況に合うスキルや進め方を案内します。 |
+| [`code-review`](./code-review/) | 変更をコーディング規約と仕様適合の2軸で並行レビューします。 |
+| [`codebase-design`](./codebase-design/) | deep moduleを中心に、境界・インターフェース・テスト容易性を設計します。 |
+| [`diagnosing-bugs`](./diagnosing-bugs/) | 難しい不具合や性能劣化を、再現と仮説検証のループで診断します。 |
+| [`domain-modeling`](./domain-modeling/) | ドメイン用語、`CONTEXT.md`、ADRを整備してモデルを明確にします。 |
+| [`grill-me`](./grill-me/) | 計画や設計を厳しく質問し、曖昧さを削ります。 |
+| [`grill-with-docs`](./grill-with-docs/) | 計画を厳しく検討しながら、ADRや用語集も残します。 |
+| [`grilling`](./grilling/) | アイデア、判断、計画を対話で徹底的にストレステストします。 |
+| [`handoff`](./handoff/) | 現在の会話を、別エージェントが継続できる引き継ぎ文書に圧縮します。 |
+| [`hatch-pet`](./hatch-pet/) | Codex互換v2アニメーションPetを作成・修復・検証・パッケージ化します。 |
+| [`implement`](./implement/) | 仕様書またはチケットに基づいて実装を進めます。 |
+| [`improve-codebase-architecture`](./improve-codebase-architecture/) | コードベースのdeepening候補を可視化し、改善対象を絞ります。 |
+| [`orchestrate`](./orchestrate/) | 大規模作業を複数エージェントへ分割し、結果を統合します。 |
+| [`prototype`](./prototype/) | 状態モデル、ロジック、UIなどの設計判断を使い捨て試作で検証します。 |
+| [`requirements_flow_alignment_skill`](./requirements_flow_alignment_skill/) | 目的、利用Flow、画面、データFlow、現行実装を分けて要件認識を合わせます。 |
+| [`research`](./research/) | 信頼性の高い一次情報を調査し、Markdownへ記録します。 |
+| [`resolving-merge-conflicts`](./resolving-merge-conflicts/) | 進行中のGit merge/rebase conflictを安全に解消します。 |
+| [`setup-matt-pocock-skills`](./setup-matt-pocock-skills/) | Matt Pocock系エンジニアリングスキル用のissue tracker、ラベル、文書構成を初期化します。 |
+| [`show-me`](./show-me/) | 図、ツリー、コード形状、HTMLでテーマを視覚的に説明します。 |
+| [`social-fetch`](./social-fetch/) | SNS投稿を複数手段で取得し、共通形式に正規化します。 |
+| [`tdd`](./tdd/) | red-green-refactorで機能追加や不具合修正を進めます。 |
+| [`teach`](./teach/) | このワークスペース内で新しいスキルや概念を教えます。 |
+| [`to-questionnaire`](./to-questionnaire/) | 未解決の判断事項を、他者が回答できる質問票に変換します。 |
+| [`to-spec`](./to-spec/) | それまでの会話を仕様書にまとめ、issue trackerへ公開します。 |
+| [`to-tickets`](./to-tickets/) | 計画や仕様を依存関係付きのtracer-bullet ticketsへ分解します。 |
+| [`triage`](./triage/) | issueと外部PRを状態機械として分類・検証・整理します。 |
+| [`wait-what`](./wait-what/) | 直前の説明が伝わらなかったとき、別の切り口で説明し直します。 |
+| [`wayfinder`](./wayfinder/) | 1セッションを超える大規模作業を、意思決定チケットの地図として計画します。 |
+| [`wizard`](./wizard/) | 人間だけが実施できる手順を案内する対話型Bash wizardを生成します。 |
+| [`writing-for-agents`](./writing-for-agents/) | Skill、`AGENTS.md`、`CLAUDE.md`など、エージェント向け文書を設計します。 |
 
 ## Installation
 
-このリポジトリをcloneし、使いたいSkillフォルダーを Codex の個人用Skillsフォルダーへコピーします。
+リポジトリをcloneし、必要なSkillフォルダーをCodexの個人用Skillsフォルダーへコピーします。
 
 ```powershell
 git clone https://github.com/ku-k-ai/my_codex_skills.git
@@ -41,19 +52,36 @@ Copy-Item -Recurse -Force .\show-me $codexSkills
 Copy-Item -Recurse -Force .\orchestrate $codexSkills
 ```
 
-コピー後、新しいCodexタスクから利用してください。Codexは依頼内容に合うSkillを自動選択できます。確実に指定する場合は、メッセージ内で `$social-fetch`、`$show-me`、`$orchestrate` のように `$` 付きで指定します。
+すべてインストールする場合:
 
-## Notes
+```powershell
+$codexSkills = Join-Path $env:USERPROFILE '.codex\skills'
+Get-ChildItem -Directory | ForEach-Object {
+    Copy-Item -Recurse -Force $_.FullName $codexSkills
+}
+```
 
-- `social-fetch` の有料APIは任意です。APIキーや取得したSNSデータはこのリポジトリへcommitしないでください。
-- `social-fetch` の各取得手段は、対象サービスの利用規約・レート制限に従って利用してください。
-- `show-me` がHTMLを生成する場合、環境によってファイルを開くコマンドが異なることがあります。
-- `orchestrate` は複数エージェント機能を利用できる環境を前提とします。
+コピー後、新しいCodexタスクから利用してください。Codexは依頼内容に合うSkillを自動選択できます。確実に指定する場合は、メッセージ内で `$social-fetch` のように `$` 付きで指定します。
+
+## Sync scope
+
+- 同期元は個人管理領域 `~/.codex/skills` の直下です。
+- OpenAI管理領域の `.system` は含めません。
+- プラグインキャッシュやアプリ同梱Skillは含めません。
+- `pptx` は同梱の独自ライセンスが複製・配布を禁止しているため、この公開リポジトリには含めません。
+- APIキー、Cookie、取得データ、`.env`、秘密鍵などはcommitしないでください。
 
 ## Provenance and licenses
 
-| Skill | Upstream | License |
+このリポジトリは複数ライセンスです。各Skillフォルダーのライセンス表示が、そのSkillに適用されます。
+
+| Skills | Upstream | License |
 |---|---|---|
-| `social-fetch` | [coreyhaines31/makerskills](https://github.com/coreyhaines31/makerskills/tree/main/skills/social-fetch) | MIT License。原文を [`social-fetch/LICENSE.upstream`](./social-fetch/LICENSE.upstream) に同梱 |
-| `show-me` | [humanlayer/skills](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me) | MIT License。原文を [`show-me/LICENSE.upstream`](./show-me/LICENSE.upstream) に同梱 |
-| `orchestrate` | ローカルの個人用Skill | 上流ライセンス情報なし |
+| `ask-matt`, `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `improve-codebase-architecture`, `prototype`, `research`, `resolving-merge-conflicts`, `setup-matt-pocock-skills`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `to-tickets`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | [mattpocock/skills](https://github.com/mattpocock/skills) | MIT。各フォルダーの `LICENSE.upstream` に原文を同梱 |
+| `social-fetch` | [coreyhaines31/makerskills](https://github.com/coreyhaines31/makerskills/tree/main/skills/social-fetch) | MIT。`social-fetch/LICENSE.upstream` に原文を同梱 |
+| `show-me` | [humanlayer/skills](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me) | MIT。`show-me/LICENSE.upstream` に原文を同梱 |
+| `archify` | [tt-a1i/archify](https://github.com/tt-a1i/archify) | MIT。`archify/LICENSE` を参照 |
+| `hatch-pet` | ローカルにインストールされた配布物 | Apache License 2.0。`hatch-pet/LICENSE.txt` を参照 |
+| `orchestrate`, `requirements_flow_alignment_skill` | ローカルの個人用Skill | 上流ライセンス情報なし |
+
+ブランド名・ロゴの利用条件は、各権利者の商標・ブランドガイドラインにも従ってください。

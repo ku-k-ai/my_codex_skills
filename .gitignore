@@ -1,0 +1,27 @@
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.*
+secrets.*
+**/credentials/
+**/secrets/
+
+# Runtime and generated local files
+README.html
+__pycache__/
+*.py[cod]
+node_modules/
+.venv/
+venv/
+dist/
+coverage/
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
