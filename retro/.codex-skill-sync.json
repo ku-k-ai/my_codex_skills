@@ -1,0 +1,7 @@
+{
+  "upstream": "https://github.com/mattpocock/skills/tree/main/skills/in-progress/retro",
+  "license": "MIT",
+  "license_file": "LICENSE.upstream",
+  "redistribution_reviewed": true,
+  "modified_for_codex": true
+}

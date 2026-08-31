@@ -1,0 +1,3 @@
+interface:
+  display_name: "Skill Publish"
+  short_description: "Install or update a Skill and sync it to Git."

@@ -13,6 +13,7 @@ secrets.*
 
 # Runtime and generated local files
 README.html
+**/SKILL.html
 __pycache__/
 *.py[cod]
 node_modules/

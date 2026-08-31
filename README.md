@@ -1,6 +1,6 @@
 # my_codex_skills
 
-個人用の Codex Skills をまとめたリポジトリです。2026-08-31 時点の `~/.codex/skills` から、公開・再配布できる31スキルを同期しています。
+個人用の Codex Skills をまとめたリポジトリです。2026-08-31 時点の `~/.codex/skills` から、公開・再配布できる35スキルを同期しています。
 
 ## Skills
 
@@ -12,6 +12,7 @@
 | [`codebase-design`](./codebase-design/) | deep moduleを中心に、境界・インターフェース・テスト容易性を設計します。 |
 | [`diagnosing-bugs`](./diagnosing-bugs/) | 難しい不具合や性能劣化を、再現と仮説検証のループで診断します。 |
 | [`domain-modeling`](./domain-modeling/) | ドメイン用語、`CONTEXT.md`、ADRを整備してモデルを明確にします。 |
+| [`eli5`](./eli5/) | 初学者向けに、大きな絵と少ない言葉のHTMLでテーマを説明します。 |
 | [`grill-me`](./grill-me/) | 計画や設計を厳しく質問し、曖昧さを削ります。 |
 | [`grill-with-docs`](./grill-with-docs/) | 計画を厳しく検討しながら、ADRや用語集も残します。 |
 | [`grilling`](./grilling/) | アイデア、判断、計画を対話で徹底的にストレステストします。 |
@@ -23,9 +24,12 @@
 | [`prototype`](./prototype/) | 状態モデル、ロジック、UIなどの設計判断を使い捨て試作で検証します。 |
 | [`requirements_flow_alignment_skill`](./requirements_flow_alignment_skill/) | 目的、利用Flow、画面、データFlow、現行実装を分けて要件認識を合わせます。 |
 | [`research`](./research/) | 信頼性の高い一次情報を調査し、Markdownへ記録します。 |
+| [`retro`](./retro/) | コーディングセッションを振り返り、今後のエージェント環境の改善候補を提示します。 |
 | [`resolving-merge-conflicts`](./resolving-merge-conflicts/) | 進行中のGit merge/rebase conflictを安全に解消します。 |
 | [`setup-matt-pocock-skills`](./setup-matt-pocock-skills/) | Matt Pocock系エンジニアリングスキル用のissue tracker、ラベル、文書構成を初期化します。 |
 | [`show-me`](./show-me/) | 図、ツリー、コード形状、HTMLでテーマを視覚的に説明します。 |
+| [`skill-doctor`](./skill-doctor/) | ローカルの会話履歴を採点し、Skillの具体的な改善案とレポートを作成します。 |
+| [`skill-publish`](./skill-publish/) | 個人用Skillの導入・更新と、公開可能な差分のGit同期を一つの流れで行います。 |
 | [`social-fetch`](./social-fetch/) | SNS投稿を複数手段で取得し、共通形式に正規化します。 |
 | [`tdd`](./tdd/) | red-green-refactorで機能追加や不具合修正を進めます。 |
 | [`teach`](./teach/) | このワークスペース内で新しいスキルや概念を教えます。 |
@@ -71,13 +75,22 @@ Get-ChildItem -Directory | ForEach-Object {
 - `pptx` は同梱の独自ライセンスが複製・配布を禁止しているため、この公開リポジトリには含めません。
 - APIキー、Cookie、取得データ、`.env`、秘密鍵などはcommitしないでください。
 
+## Event-driven sync
+
+Codexの `PostToolUse` Hookが、Skillの追加・更新を行ったツール実行の直後だけ `~/.codex/skills` とこのリポジトリを比較します。定期監視や1時間ごとのポーリングは行いません。
+
+既に公開承認済みのSkillは差分をcommitして `main` へpushします。新規Skillは `.codex-skill-sync.json` に出典と再配布確認を記録し、必要なライセンス、秘密情報検査、frontmatter、付随ファイルを検証できた場合だけ公開します。ライセンス不明、再配布禁止、秘密情報、削除、dirty worktree、non-fast-forwardは自動処理せず、`~/.codex/hooks/state/skill-sync/sync.log` に保留理由を残します。
+
 ## Provenance and licenses
 
 このリポジトリは複数ライセンスです。各Skillフォルダーのライセンス表示が、そのSkillに適用されます。
 
 | Skills | Upstream | License |
 |---|---|---|
-| `ask-matt`, `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `improve-codebase-architecture`, `prototype`, `research`, `resolving-merge-conflicts`, `setup-matt-pocock-skills`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `to-tickets`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | [mattpocock/skills](https://github.com/mattpocock/skills) | MIT。各フォルダーの `LICENSE.upstream` に原文を同梱 |
+| `ask-matt`, `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `improve-codebase-architecture`, `prototype`, `research`, `resolving-merge-conflicts`, `retro`, `setup-matt-pocock-skills`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `to-tickets`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | [mattpocock/skills](https://github.com/mattpocock/skills) | MIT。各フォルダーの `LICENSE.upstream` に原文を同梱 |
+| `skill-doctor` | [warpdotdev/common-skills](https://github.com/warpdotdev/common-skills/tree/main/.agents/skills/skill-doctor) | MIT。`skill-doctor/LICENSE.upstream` に原文を同梱 |
+| `eli5` | [anthropics/claude-plugins-community](https://github.com/anthropics/claude-plugins-community/tree/main/eli5/skills/eli5) | リポジトリルートのApache License 2.0を安全側で適用し、`eli5/LICENSE.upstream` に同梱。プラグインメタデータ上はMIT表記 |
+| `skill-publish` | ローカルの個人用Skill | リポジトリ所有者が作成した個人用Skill |
 | `social-fetch` | [coreyhaines31/makerskills](https://github.com/coreyhaines31/makerskills/tree/main/skills/social-fetch) | MIT。`social-fetch/LICENSE.upstream` に原文を同梱 |
 | `show-me` | [humanlayer/skills](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me) | MIT。`show-me/LICENSE.upstream` に原文を同梱 |
 | `archify` | [tt-a1i/archify](https://github.com/tt-a1i/archify) | MIT。`archify/LICENSE` を参照 |

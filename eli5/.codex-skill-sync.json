@@ -1,0 +1,7 @@
+{
+  "upstream": "https://github.com/anthropics/claude-plugins-community/tree/main/eli5/skills/eli5",
+  "license": "Apache-2.0 (conservative; plugin metadata says MIT)",
+  "license_file": "LICENSE.upstream",
+  "redistribution_reviewed": true,
+  "modified_for_codex": true
+}

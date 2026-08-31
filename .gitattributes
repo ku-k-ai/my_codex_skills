@@ -1,0 +1,3 @@
+# Preserve upstream byte-significant whitespace in vendored Skill files.
+skill-doctor/assets/pierre-diffs.js -whitespace
+skill-doctor/references/skill-improvements.md -whitespace

@@ -1,0 +1,7 @@
+{
+  "upstream": "https://github.com/warpdotdev/common-skills/tree/main/.agents/skills/skill-doctor",
+  "license": "MIT",
+  "license_file": "LICENSE.upstream",
+  "redistribution_reviewed": true,
+  "modified_for_codex": true
+}
