@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 
 const moduleDir = process.env.PLAYWRIGHT_MODULE_DIR || process.env.NODE_PATH?.split(path.delimiter).find(Boolean);
@@ -35,7 +35,7 @@ const page = await browser.newPage({
   deviceScaleFactor: 1,
 });
 
-await page.goto(`file://${htmlPath}`, { waitUntil: "networkidle" });
+await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "networkidle" });
 
 const slides = await page.$$(".slide");
 const screenshots = [];
