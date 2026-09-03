@@ -1,0 +1,154 @@
+name: One-time strict verification of consulting-pptx-skill
+
+on:
+  push:
+    branches:
+      - feat/consulting-pptx-skill-codex
+    paths:
+      - .github/workflows/verify-consulting-pptx-skill-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate branch
+        uses: actions/checkout@v5
+
+      - name: Generate and inspect the sample deck
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd consulting-pptx-skill/pipeline
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+          node scripts/validate_spec.mjs slide-spec/example_deck.json
+          node scripts/render_spec_to_html.mjs slide-spec/example_deck.json generated/example_deck.html
+          node scripts/qa_html_deck.mjs generated/example_deck.html generated/example_deck.qa.json
+          node scripts/render_html_screenshots.mjs generated/example_deck.html generated/screenshots
+          node scripts/export_spec_to_editable_pptx.mjs slide-spec/example_deck.json generated/example_deck.pptx
+
+          python3 -m pip install --disable-pip-version-check python-pptx
+          python3 ../scripts/check_deck.py generated/example_deck.pptx
+          PLAYWRIGHT_MODULE_DIR="$PWD/node_modules/playwright" node ../scripts/check_layout.mjs generated/example_deck.html
+
+          python3 - <<'PY'
+          import json
+          import zipfile
+          from pathlib import Path
+
+          html = Path("generated/example_deck.html")
+          pptx = Path("generated/example_deck.pptx")
+          qa = Path("generated/example_deck.qa.json")
+          screenshots = sorted(Path("generated/screenshots").glob("*.png"))
+          for path in (html, pptx, qa):
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"Missing generated artifact: {path}")
+          if len(screenshots) != 3 or any(path.stat().st_size == 0 for path in screenshots):
+              raise SystemExit(f"Expected 3 non-empty screenshots, found {len(screenshots)}")
+
+          report = json.loads(qa.read_text(encoding="utf-8"))
+          if report.get("pass") is not True or report.get("slideCount") != 3:
+              raise SystemExit(f"HTML QA did not pass: {report}")
+          if report.get("sourceMissing") != 0 or report.get("overflow"):
+              raise SystemExit(f"HTML QA found source or overflow defects: {report}")
+
+          with zipfile.ZipFile(pptx) as archive:
+              broken = archive.testzip()
+              if broken:
+                  raise SystemExit(f"Corrupt PPTX member: {broken}")
+              slides = [
+                  name for name in archive.namelist()
+                  if name.startswith("ppt/slides/slide") and name.endswith(".xml")
+              ]
+              if len(slides) != 3:
+                  raise SystemExit(f"Expected 3 slides, found {len(slides)}")
+          print(f"Linux verification passed: HTML={html.stat().st_size} bytes, PPTX={pptx.stat().st_size} bytes")
+          PY
+
+  verify-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out candidate branch
+        uses: actions/checkout@v5
+
+      - name: Generate and inspect the sample deck
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          Set-Location consulting-pptx-skill\pipeline
+          npm install --no-audit --no-fund
+          npx playwright install chromium
+
+          node scripts\validate_spec.mjs slide-spec\example_deck.json
+          node scripts\render_spec_to_html.mjs slide-spec\example_deck.json generated\example_deck.html
+          node scripts\qa_html_deck.mjs generated\example_deck.html generated\example_deck.qa.json
+          node scripts\render_html_screenshots.mjs generated\example_deck.html generated\screenshots
+          node scripts\export_spec_to_editable_pptx.mjs slide-spec\example_deck.json generated\example_deck.pptx
+
+          python -m pip install --disable-pip-version-check python-pptx
+          python ..\scripts\check_deck.py generated\example_deck.pptx
+          $env:PLAYWRIGHT_MODULE_DIR = (Resolve-Path .\node_modules\playwright).Path
+          node ..\scripts\check_layout.mjs generated\example_deck.html
+
+          @'
+          import json
+          import zipfile
+          from pathlib import Path
+
+          html = Path("generated/example_deck.html")
+          pptx = Path("generated/example_deck.pptx")
+          qa = Path("generated/example_deck.qa.json")
+          screenshots = sorted(Path("generated/screenshots").glob("*.png"))
+          for path in (html, pptx, qa):
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"Missing generated artifact: {path}")
+          if len(screenshots) != 3 or any(path.stat().st_size == 0 for path in screenshots):
+              raise SystemExit(f"Expected 3 non-empty screenshots, found {len(screenshots)}")
+
+          report = json.loads(qa.read_text(encoding="utf-8"))
+          if report.get("pass") is not True or report.get("slideCount") != 3:
+              raise SystemExit(f"HTML QA did not pass: {report}")
+          if report.get("sourceMissing") != 0 or report.get("overflow"):
+              raise SystemExit(f"HTML QA found source or overflow defects: {report}")
+
+          with zipfile.ZipFile(pptx) as archive:
+              broken = archive.testzip()
+              if broken:
+                  raise SystemExit(f"Corrupt PPTX member: {broken}")
+              slides = [
+                  name for name in archive.namelist()
+                  if name.startswith("ppt/slides/slide") and name.endswith(".xml")
+              ]
+              if len(slides) != 3:
+                  raise SystemExit(f"Expected 3 slides, found {len(slides)}")
+          print(f"Windows verification passed: HTML={html.stat().st_size} bytes, PPTX={pptx.stat().st_size} bytes")
+          '@ | python -
+
+  cleanup:
+    needs:
+      - verify-linux
+      - verify-windows
+    if: ${{ success() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Remove this one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/verify-consulting-pptx-skill-v2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test: verify consulting PPTX strictly on Linux and Windows"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
