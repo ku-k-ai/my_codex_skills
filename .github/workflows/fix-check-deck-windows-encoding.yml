@@ -73,9 +73,18 @@ jobs:
           PY
 
           python3 -m py_compile consulting-pptx-skill/scripts/check_deck.py
-          PYTHONIOENCODING=ascii python3 consulting-pptx-skill/scripts/check_deck.py \
-            consulting-pptx-skill/assets/SuperTemplate_38type.pptx >/tmp/checker-output.txt || true
+          python3 -m pip install --disable-pip-version-check python-pptx
+          set +e
+          PYTHONIOENCODING=ascii python3 consulting-pptx-skill/scripts/check_deck.py consulting-pptx-skill/assets/SuperTemplate_38type.pptx >/tmp/checker-output.txt 2>&1
+          checker_status=$?
+          set -e
           test -s /tmp/checker-output.txt
+          if grep -q "UnicodeEncodeError" /tmp/checker-output.txt; then
+            cat /tmp/checker-output.txt
+            echo "Checker still fails to emit Japanese text" >&2
+            exit 1
+          fi
+          echo "Checker executed without encoding failure (semantic exit=${checker_status})."
           git diff --check
 
           rm -f .github/workflows/fix-check-deck-windows-encoding.yml
