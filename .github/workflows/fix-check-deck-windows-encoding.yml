@@ -1,0 +1,91 @@
+name: One-time Windows UTF-8 patch for consulting PPTX checker
+
+on:
+  push:
+    branches:
+      - feat/consulting-pptx-skill-codex
+    paths:
+      - .github/workflows/fix-check-deck-windows-encoding.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make checker output portable on Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          checker = Path("consulting-pptx-skill/scripts/check_deck.py")
+          text = checker.read_text(encoding="utf-8")
+          anchor = "import zipfile\nfrom pathlib import Path\n\n"
+          addition = '''import zipfile
+          from pathlib import Path
+
+          
+          def _configure_utf8_console():
+              """Keep Japanese QA output printable on Windows and redirected CI consoles."""
+              for stream in (sys.stdout, sys.stderr):
+                  reconfigure = getattr(stream, "reconfigure", None)
+                  if reconfigure is None:
+                      continue
+                  try:
+                      reconfigure(encoding="utf-8", errors="replace")
+                  except (OSError, ValueError):
+                      pass
+
+
+          _configure_utf8_console()
+
+          '''
+          # Remove indentation introduced only to keep the workflow YAML readable.
+          addition = "\n".join(line[10:] if line.startswith("          ") else line for line in addition.splitlines()) + "\n"
+          if anchor not in text:
+              raise SystemExit("Unexpected import block in check_deck.py")
+          if "def _configure_utf8_console" in text:
+              raise SystemExit("UTF-8 console patch is already present")
+          checker.write_text(text.replace(anchor, addition, 1), encoding="utf-8")
+
+          upstream = Path("consulting-pptx-skill/UPSTREAM.md")
+          text = upstream.read_text(encoding="utf-8")
+          marker = "- Shortened the first bundled sample title because the upstream example failed its own 40-character title check."
+          note = "- Made the checker emit UTF-8 safely so Japanese diagnostics work in Windows terminals and CI."
+          if marker not in text:
+              raise SystemExit("Unexpected UPSTREAM.md notes")
+          if note not in text:
+              text = text.replace(marker, marker + "\n" + note, 1)
+          upstream.write_text(text, encoding="utf-8")
+
+          sync = Path("consulting-pptx-skill/.codex-skill-sync.json")
+          text = sync.read_text(encoding="utf-8")
+          old = "sample deck title corrected to pass upstream QA."
+          new = "sample deck title corrected to pass upstream QA; Windows-safe UTF-8 checker output."
+          if old not in text:
+              raise SystemExit("Unexpected sync adaptation text")
+          sync.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+
+          python3 -m py_compile consulting-pptx-skill/scripts/check_deck.py
+          PYTHONIOENCODING=ascii python3 consulting-pptx-skill/scripts/check_deck.py \
+            consulting-pptx-skill/assets/SuperTemplate_38type.pptx >/tmp/checker-output.txt || true
+          test -s /tmp/checker-output.txt
+          git diff --check
+
+          rm -f .github/workflows/fix-check-deck-windows-encoding.yml
+          find consulting-pptx-skill -type d -name __pycache__ -prune -exec rm -rf {} +
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(skills): make PPTX checker output Windows-safe"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
