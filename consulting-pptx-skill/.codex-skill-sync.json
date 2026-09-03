@@ -1,0 +1,8 @@
+{
+  "upstream": "https://github.com/gozen3ji/consulting-pptx-skill",
+  "upstream_commit": "ccd4a588d6fc3c21a291579cfd5ca6e759a71f20",
+  "license": "MIT",
+  "redistribution_reviewed": true,
+  "license_file": "LICENSE.upstream",
+  "adaptation": "Codex activation metadata and execution guidance; Windows-safe filesystem paths, file URLs, and module resolution; sample deck title corrected to pass upstream QA; Windows-safe UTF-8 checker output."
+}
