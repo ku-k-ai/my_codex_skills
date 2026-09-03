@@ -1,12 +1,13 @@
 # my_codex_skills
 
-個人用の Codex Skills をまとめたリポジトリです。2026-08-31 時点の `~/.codex/skills` から、公開・再配布できる35スキルを同期しています。
+個人用の Codex Skills をまとめたリポジトリです。2026-09-03 時点で、公開・再配布できる36スキルを収録しています。
 
 ## Skills
 
 | Skill | 概要 |
 |---|---|
 | [`archify`](./archify/) | アーキテクチャ、ワークフロー、シーケンス、データフロー、状態遷移を検証可能なHTML図にします。 |
+| [`consulting-pptx-skill`](./consulting-pptx-skill/) | 約80項目のスライド規約、38型SlideSpec、生成パイプライン、機械QAで、経営会議・提案書向けの編集可能PPTXを作ります。 |
 | [`ask-matt`](./ask-matt/) | Matt Pocock系スキルから、状況に合うスキルや進め方を案内します。 |
 | [`code-review`](./code-review/) | 変更をコーディング規約と仕様適合の2軸で並行レビューします。 |
 | [`codebase-design`](./codebase-design/) | deep moduleを中心に、境界・インターフェース・テスト容易性を設計します。 |
@@ -73,6 +74,7 @@ Get-ChildItem -Directory | ForEach-Object {
 - OpenAI管理領域の `.system` は含めません。
 - プラグインキャッシュやアプリ同梱Skillは含めません。
 - `pptx` は同梱の独自ライセンスが複製・配布を禁止しているため、この公開リポジトリには含めません。
+- `consulting-pptx-skill` はMITライセンスの別Skillで、コンサル資料の新規作成・ストーリー設計・品質QAに特化しているため収録します。
 - APIキー、Cookie、取得データ、`.env`、秘密鍵などはcommitしないでください。
 
 ## Event-driven sync
@@ -94,6 +96,7 @@ Codexの `PostToolUse` Hookが、Skillの追加・更新を行ったツール実
 | `social-fetch` | [coreyhaines31/makerskills](https://github.com/coreyhaines31/makerskills/tree/main/skills/social-fetch) | MIT。`social-fetch/LICENSE.upstream` に原文を同梱 |
 | `show-me` | [humanlayer/skills](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me) | MIT。`show-me/LICENSE.upstream` に原文を同梱 |
 | `archify` | [tt-a1i/archify](https://github.com/tt-a1i/archify) | MIT。`archify/LICENSE` を参照 |
+| `consulting-pptx-skill` | [gozen3ji/consulting-pptx-skill](https://github.com/gozen3ji/consulting-pptx-skill) | MIT。Codex互換の起動条件・実行ガイドのみ追補し、`consulting-pptx-skill/LICENSE.upstream` に原文を同梱 |
 | `hatch-pet` | ローカルにインストールされた配布物 | Apache License 2.0。`hatch-pet/LICENSE.txt` を参照 |
 | `orchestrate`, `requirements_flow_alignment_skill` | ローカルの個人用Skill | 上流ライセンス情報なし |
 

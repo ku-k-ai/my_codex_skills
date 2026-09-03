@@ -1,0 +1,6 @@
+interface:
+  display_name: "Consulting PPTX"
+  short_description: "規約・38型・QAでコンサル品質のPPTXを作成"
+  default_prompt: "経営会議・提案書向けの編集可能なPowerPointを、スライド規約と品質検査に沿って作成してください。"
+policy:
+  allow_implicit_invocation: true

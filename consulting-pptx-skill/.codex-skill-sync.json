@@ -1,0 +1,8 @@
+{
+  "upstream": "https://github.com/gozen3ji/consulting-pptx-skill",
+  "upstream_commit": "ccd4a588d6fc3c21a291579cfd5ca6e759a71f20",
+  "license": "MIT",
+  "redistribution_reviewed": true,
+  "license_file": "LICENSE.upstream",
+  "adaptation": "Codex activation metadata, execution guidance, overlap boundaries, and provenance only; upstream generation logic is unchanged."
+}
