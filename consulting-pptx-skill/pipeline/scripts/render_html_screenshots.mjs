@@ -1,16 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 
-const defaultNodeModules =
-  "/Users/kazuki/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules";
-const moduleDir = process.env.PLAYWRIGHT_MODULE_DIR || process.env.NODE_PATH || defaultNodeModules;
+const moduleDir = process.env.PLAYWRIGHT_MODULE_DIR || process.env.NODE_PATH?.split(path.delimiter).find(Boolean);
 const localRequire = createRequire(import.meta.url);
 const load = (name) => {
   try {
     return localRequire(name);
-  } catch {
-    return createRequire(`${moduleDir}/`)(name);
+  } catch (error) {
+    if (!moduleDir) {
+      throw new Error(
+        `Cannot load ${name}. Run "npm install" in the pipeline directory or set the module directory environment variable.`,
+        { cause: error },
+      );
+    }
+    return createRequire(path.resolve(moduleDir, "package.json"))(name);
   }
 };
 const { chromium } = load("playwright");
@@ -18,7 +23,7 @@ const { chromium } = load("playwright");
 const input = process.argv[2] || "html-css/styleguide.html";
 const outputDir = process.argv[3] || "examples/screenshots";
 
-const root = new URL("..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("..", import.meta.url));
 const htmlPath = path.resolve(root, input);
 const screenshotsDir = path.resolve(root, outputDir);
 

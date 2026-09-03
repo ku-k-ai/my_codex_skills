@@ -11,4 +11,5 @@
 - Added Codex-safe path, workspace-output, Windows, dependency, and QA guidance.
 - Added `agents/openai.yaml` and `.codex-skill-sync.json`.
 - Added a Codex note to the upstream README.
-- Did not change the upstream renderer, templates, rules, schema, or checking logic.
+- Kept the renderer, templates, rules, schema, and checks intact except for Windows-safe path/module resolution.
+- Shortened the first bundled sample title because the upstream example failed its own 40-character title check.

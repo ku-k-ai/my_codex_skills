@@ -1,16 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 
-const defaultNodeModules =
-  "/Users/kazuki/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules";
-const moduleDir = process.env.PPTXGENJS_MODULE_DIR || process.env.NODE_PATH || defaultNodeModules;
+const moduleDir = process.env.PPTXGENJS_MODULE_DIR || process.env.NODE_PATH?.split(path.delimiter).find(Boolean);
 const localRequire = createRequire(import.meta.url);
 const load = (name) => {
   try {
     return localRequire(name);
-  } catch {
-    return createRequire(`${moduleDir}/`)(name);
+  } catch (error) {
+    if (!moduleDir) {
+      throw new Error(
+        `Cannot load ${name}. Run "npm install" in the pipeline directory or set the module directory environment variable.`,
+        { cause: error },
+      );
+    }
+    return createRequire(path.resolve(moduleDir, "package.json"))(name);
   }
 };
 const pptxgen = load("pptxgenjs");
@@ -18,7 +23,7 @@ const pptxgen = load("pptxgenjs");
 const inputArg = process.argv[2] || "slide-spec/synthetic_b2b_growth.json";
 const outputArg = process.argv[3] || "generated/synthetic_b2b_growth_editable.pptx";
 
-const root = new URL("..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("..", import.meta.url));
 const inputPath = path.resolve(root, inputArg);
 const outputPath = path.resolve(root, outputArg);
 const deck = JSON.parse(await fs.readFile(inputPath, "utf8"));

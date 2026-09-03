@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const input = process.argv[2] || "slide-spec/synthetic_b2b_growth.json";
 const output = process.argv[3] || "generated/synthetic_b2b_growth.html";
 
-const root = new URL("..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("..", import.meta.url));
 const inputPath = path.resolve(root, input);
 const outputPath = path.resolve(root, output);
 const spec = JSON.parse(await fs.readFile(inputPath, "utf8"));

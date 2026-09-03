@@ -4,5 +4,5 @@
   "license": "MIT",
   "redistribution_reviewed": true,
   "license_file": "LICENSE.upstream",
-  "adaptation": "Codex activation metadata, execution guidance, overlap boundaries, and provenance only; upstream generation logic is unchanged."
+  "adaptation": "Codex activation metadata and execution guidance; Windows-safe file URL and module resolution; sample deck title corrected to pass upstream QA."
 }

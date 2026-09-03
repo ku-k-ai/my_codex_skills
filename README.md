@@ -96,7 +96,7 @@ Codexの `PostToolUse` Hookが、Skillの追加・更新を行ったツール実
 | `social-fetch` | [coreyhaines31/makerskills](https://github.com/coreyhaines31/makerskills/tree/main/skills/social-fetch) | MIT。`social-fetch/LICENSE.upstream` に原文を同梱 |
 | `show-me` | [humanlayer/skills](https://github.com/humanlayer/skills/tree/main/plugins/show-me/skills/show-me) | MIT。`show-me/LICENSE.upstream` に原文を同梱 |
 | `archify` | [tt-a1i/archify](https://github.com/tt-a1i/archify) | MIT。`archify/LICENSE` を参照 |
-| `consulting-pptx-skill` | [gozen3ji/consulting-pptx-skill](https://github.com/gozen3ji/consulting-pptx-skill) | MIT。Codex互換の起動条件・実行ガイドのみ追補し、`consulting-pptx-skill/LICENSE.upstream` に原文を同梱 |
+| `consulting-pptx-skill` | [gozen3ji/consulting-pptx-skill](https://github.com/gozen3ji/consulting-pptx-skill) | MIT。Codex起動条件、Windows互換修正、同梱サンプル整合化を追補し、`consulting-pptx-skill/LICENSE.upstream` に原文を同梱 |
 | `hatch-pet` | ローカルにインストールされた配布物 | Apache License 2.0。`hatch-pet/LICENSE.txt` を参照 |
 | `orchestrate`, `requirements_flow_alignment_skill` | ローカルの個人用Skill | 上流ライセンス情報なし |
 
