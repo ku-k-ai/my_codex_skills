@@ -1,0 +1,84 @@
+name: One-time smoke test consulting-pptx-skill
+
+on:
+  push:
+    branches:
+      - feat/consulting-pptx-skill-codex
+    paths:
+      - .github/workflows/smoke-test-consulting-pptx-skill.yml
+
+permissions:
+  contents: write
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies and generate the sample deck
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd consulting-pptx-skill/pipeline
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+          node scripts/validate_spec.mjs slide-spec/example_deck.json
+          node scripts/render_spec_to_html.mjs slide-spec/example_deck.json generated/example_deck.html
+          node scripts/qa_html_deck.mjs generated/example_deck.html generated/example_deck.qa.json
+          node scripts/export_spec_to_editable_pptx.mjs slide-spec/example_deck.json generated/example_deck.pptx
+
+          python3 -m pip install --disable-pip-version-check python-pptx
+          python3 ../scripts/check_deck.py generated/example_deck.pptx
+          PLAYWRIGHT_MODULE_DIR="$PWD/node_modules/playwright" \
+            node ../scripts/check_layout.mjs generated/example_deck.html
+
+          python3 - <<'PY'
+          import json
+          import zipfile
+          from pathlib import Path
+
+          html = Path("generated/example_deck.html")
+          pptx = Path("generated/example_deck.pptx")
+          qa = Path("generated/example_deck.qa.json")
+          for path in (html, pptx, qa):
+              if not path.is_file() or path.stat().st_size == 0:
+                  raise SystemExit(f"Missing generated artifact: {path}")
+
+          with zipfile.ZipFile(pptx) as archive:
+              broken = archive.testzip()
+              if broken:
+                  raise SystemExit(f"Corrupt PPTX member: {broken}")
+              slide_xml = [name for name in archive.namelist() if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
+              if len(slide_xml) != 3:
+                  raise SystemExit(f"Expected 3 slides, found {len(slide_xml)}")
+
+          report = json.loads(qa.read_text(encoding="utf-8"))
+          if not isinstance(report, dict):
+              raise SystemExit("QA report is not a JSON object")
+          print(f"Generated HTML: {html.stat().st_size} bytes")
+          print(f"Generated PPTX: {pptx.stat().st_size} bytes; slides={len(slide_xml)}")
+          print(f"QA keys: {sorted(report)[:12]}")
+          PY
+
+      - name: Remove the one-time workflow after success
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/smoke-test-consulting-pptx-skill.yml
+          rm -rf consulting-pptx-skill/pipeline/node_modules
+          rm -rf consulting-pptx-skill/pipeline/generated
+          rm -f consulting-pptx-skill/pipeline/package-lock.json
+          find consulting-pptx-skill -type d -name __pycache__ -prune -exec rm -rf {} +
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "test: verify consulting PPTX generation pipeline"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
