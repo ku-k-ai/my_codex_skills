@@ -13,6 +13,21 @@ import sys
 import zipfile
 from pathlib import Path
 
+
+def _configure_utf8_console():
+    """Keep Japanese QA output printable on Windows and redirected CI consoles."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass
+
+
+_configure_utf8_console()
+
 # 自ブランドで禁止するレガシー色があればここに列挙（HEX 6桁・#なし）
 OLD_COLORS = []
 TITLE_MAX = 40

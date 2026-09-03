@@ -4,5 +4,5 @@
   "license": "MIT",
   "redistribution_reviewed": true,
   "license_file": "LICENSE.upstream",
-  "adaptation": "Codex activation metadata and execution guidance; Windows-safe filesystem paths, file URLs, and module resolution; sample deck title corrected to pass upstream QA."
+  "adaptation": "Codex activation metadata and execution guidance; Windows-safe filesystem paths, file URLs, and module resolution; sample deck title corrected to pass upstream QA; Windows-safe UTF-8 checker output."
 }
