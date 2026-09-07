@@ -1,8 +1,8 @@
 ---
 name: orchestrate
-description: Coordinate multiple agents on large-scope tasks. Use whenever the work is substantial; trivial tasks do not require this skill.
+description: "旧orchestrate名からmy-orchestrateへ案内する互換入口。既存の依頼やSkillがorchestrateを参照した場合に使う。"
 ---
 
 # Orchestrate
 
-Remain available to the user while delegating substantive work. Run narrow, read-only scouts in parallel with `reasoning_effort: "low"` and `fork_turns: "none"`. Use `reasoning_effort: "medium"` for routine implementation and `"high"` for difficult work. Give each agent distinct ownership, prevent overlapping assignments, and instruct leaf workers not to delegate. Integrate the results and keep approvals with the user.
+運用ルールは[My Orchestrate](../my-orchestrate/SKILL.md)へ移行した。この入口が呼ばれたらリンク先を読み、その役割・モデル・待機ルールを使う。分担ルールはリンク先で一元管理する。

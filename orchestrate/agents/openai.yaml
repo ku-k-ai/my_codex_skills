@@ -1,4 +1,4 @@
 interface:
-  display_name: "Orchestrate"
-  short_description: "Manage large-scope work across agents"
-  default_prompt: "Use $orchestrate to manage this large-scope task across focused agents."
+  display_name: "Orchestrate (My Orchestrateへ移行)"
+  short_description: "旧名からMy Orchestrateの役割別委譲へ案内する互換入口"
+  default_prompt: "$orchestrate からMy Orchestrateのルールを読み、この仕事を進めてください。"

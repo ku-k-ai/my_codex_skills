@@ -1,16 +1,16 @@
 # my_codex_skills
 
-個人用の Codex Skills をまとめたリポジトリです。2026-09-03 時点で、公開・再配布できる36スキルを収録しています。
+個人用の Codex Skills をまとめたリポジトリです。2026-09-03 時点で、公開・再配布できる37スキルを収録しています。
 
 ## Skills
 
 | Skill | 概要 |
 |---|---|
 | [`archify`](./archify/) | アーキテクチャ、ワークフロー、シーケンス、データフロー、状態遷移を検証可能なHTML図にします。 |
-| [`consulting-pptx-skill`](./consulting-pptx-skill/) | 約80項目のスライド規約、38型SlideSpec、生成パイプライン、機械QAで、経営会議・提案書向けの編集可能PPTXを作ります。 |
 | [`ask-matt`](./ask-matt/) | Matt Pocock系スキルから、状況に合うスキルや進め方を案内します。 |
 | [`code-review`](./code-review/) | 変更をコーディング規約と仕様適合の2軸で並行レビューします。 |
 | [`codebase-design`](./codebase-design/) | deep moduleを中心に、境界・インターフェース・テスト容易性を設計します。 |
+| [`consulting-pptx-skill`](./consulting-pptx-skill/) | 約80項目のスライド規約、38型SlideSpec、生成パイプライン、機械QAで、経営会議・提案書向けの編集可能PPTXを作ります。 |
 | [`diagnosing-bugs`](./diagnosing-bugs/) | 難しい不具合や性能劣化を、再現と仮説検証のループで診断します。 |
 | [`domain-modeling`](./domain-modeling/) | ドメイン用語、`CONTEXT.md`、ADRを整備してモデルを明確にします。 |
 | [`eli5`](./eli5/) | 初学者向けに、大きな絵と少ない言葉のHTMLでテーマを説明します。 |
@@ -21,12 +21,13 @@
 | [`hatch-pet`](./hatch-pet/) | Codex互換v2アニメーションPetを作成・修復・検証・パッケージ化します。 |
 | [`implement`](./implement/) | 仕様書またはチケットに基づいて実装を進めます。 |
 | [`improve-codebase-architecture`](./improve-codebase-architecture/) | コードベースのdeepening候補を可視化し、改善対象を絞ります。 |
+| [`my-orchestrate`](./my-orchestrate/) | 独立した調査・実装を並列に進める場合や、設計・変更に独立レビューが必要な場合に、役割に応じたCodexサブエージェントを選び、結果を統合する。 |
 | [`orchestrate`](./orchestrate/) | 大規模作業を複数エージェントへ分割し、結果を統合します。 |
 | [`prototype`](./prototype/) | 状態モデル、ロジック、UIなどの設計判断を使い捨て試作で検証します。 |
 | [`requirements_flow_alignment_skill`](./requirements_flow_alignment_skill/) | 目的、利用Flow、画面、データFlow、現行実装を分けて要件認識を合わせます。 |
 | [`research`](./research/) | 信頼性の高い一次情報を調査し、Markdownへ記録します。 |
-| [`retro`](./retro/) | コーディングセッションを振り返り、今後のエージェント環境の改善候補を提示します。 |
 | [`resolving-merge-conflicts`](./resolving-merge-conflicts/) | 進行中のGit merge/rebase conflictを安全に解消します。 |
+| [`retro`](./retro/) | コーディングセッションを振り返り、今後のエージェント環境の改善候補を提示します。 |
 | [`setup-matt-pocock-skills`](./setup-matt-pocock-skills/) | Matt Pocock系エンジニアリングスキル用のissue tracker、ラベル、文書構成を初期化します。 |
 | [`show-me`](./show-me/) | 図、ツリー、コード形状、HTMLでテーマを視覚的に説明します。 |
 | [`skill-doctor`](./skill-doctor/) | ローカルの会話履歴を採点し、Skillの具体的な改善案とレポートを作成します。 |
@@ -42,6 +43,8 @@
 | [`wayfinder`](./wayfinder/) | 1セッションを超える大規模作業を、意思決定チケットの地図として計画します。 |
 | [`wizard`](./wizard/) | 人間だけが実施できる手順を案内する対話型Bash wizardを生成します。 |
 | [`writing-for-agents`](./writing-for-agents/) | Skill、`AGENTS.md`、`CLAUDE.md`など、エージェント向け文書を設計します。 |
+
+
 
 ## Installation
 
@@ -99,5 +102,6 @@ Codexの `PostToolUse` Hookが、Skillの追加・更新を行ったツール実
 | `consulting-pptx-skill` | [gozen3ji/consulting-pptx-skill](https://github.com/gozen3ji/consulting-pptx-skill) | MIT。Codex起動条件、Windows互換修正、同梱サンプル整合化を追補し、`consulting-pptx-skill/LICENSE.upstream` に原文を同梱 |
 | `hatch-pet` | ローカルにインストールされた配布物 | Apache License 2.0。`hatch-pet/LICENSE.txt` を参照 |
 | `orchestrate`, `requirements_flow_alignment_skill` | ローカルの個人用Skill | 上流ライセンス情報なし |
+| `my-orchestrate` | ローカルの個人用Skill | All rights reserved by the repository owner |
 
 ブランド名・ロゴの利用条件は、各権利者の商標・ブランドガイドラインにも従ってください。

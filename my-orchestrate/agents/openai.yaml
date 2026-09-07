@@ -1,0 +1,4 @@
+interface:
+  display_name: "My Orchestrate"
+  short_description: "役割別にLunaとAstraへ委譲し、履歴と待機の無駄を抑える"
+  default_prompt: "$my-orchestrate を使って、必要な役割だけに仕事を分担し、結果を統合してください。"
