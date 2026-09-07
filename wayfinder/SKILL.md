@@ -1,7 +1,6 @@
 ---
 name: wayfinder
 description: Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.
-disable-model-invocation: true
 ---
 
 A loose idea has arrived, too big for one agent session, and wrapped in fog: the way from here to the **destination** isn't visible yet. Wayfinding is about finding that way, not charging at the destination. This skill charts the way as a **shared map** on the repo's issue tracker, then works its **decision tickets** (questions whose resolution is a decision, not slices of a build to execute) one at a time until the route is clear.
@@ -22,7 +21,7 @@ The map is a single issue on this repo's issue tracker, labelled `wayfinder:map`
 
 The map is an **index**, not a store. It lists the decisions made and points at the tickets that hold their detail; a decision lives in exactly one place, its ticket, so the map never restates it, only gists it and links.
 
-**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`. Consult the tracker doc's "Wayfinding operations" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.
+**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** Use the configured tracker and consult its "Wayfinding operations" guidance when available. If none is configured, use the repository's local Markdown convention: one map linking to a file per decision, with status, owner and blocking links recorded in those files. Setup is not a prerequisite for making the requested map. Confirm a destination only if the request requires an external tracker that is not yet identified.
 
 ### The map body
 
@@ -102,18 +101,18 @@ Ruling something out of scope is a scoping act, not a step on the route. When a 
 
 ## Invocation
 
-Two modes. Either way, **never resolve more than one ticket per session**, with the exception of research tickets.
+Two modes. Work one decision at a time, continuing through independently resolvable tickets within the user's requested scope. Stop when that scope is complete or the next decision requires missing human input or external access. Use a one-ticket checkpoint only when the user requests it.
 
 ### Chart the map
 
 User invokes with a loose idea.
 
 1. **Name the destination.** Call the Skill tool twice, for "grilling" and "domain-modeling", to pin down what this map is finding its way to: the spec, decision, or change. The destination fixes the scope, so it's settled first.
-2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** (the way to the destination is already clear, the whole journey small enough for one session), you don't need a map. Stop and ask the user how they'd like to proceed.
+2. **Map the frontier.** Explore the unresolved decisions breadth-first, reusing answers already given. If the route is already clear and small enough for one session, summarize it without creating a map, then complete any further work already requested. Planning alone does not authorize execution.
 3. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
 4. **Create the tickets you can specify now** as child issues of the map, then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
 5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket.
-6. Stop: charting is one session's work; it hand-resolves nothing.
+6. If the request was only to chart the map, deliver it. If it also asks to resolve the route, continue with unblocked decisions below, preserving human-input boundaries.
 
 ### Work through the map
 
@@ -124,5 +123,6 @@ User invokes with a map (URL or number). A ticket is **optional**: without one, 
 3. Resolve it. **Zoom as needed**: fetch the full body of any related or closed ticket on demand; call the Skill tool for whichever skills the `## Notes` block names. If in doubt, call the Skill tool twice, for "grilling" and "domain-modeling".
 4. Record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far.
 5. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If the answer reveals that a ticket (this one or another) sits beyond the destination, **rule it out of scope** rather than resolving it on the route. If the decision invalidates other parts of the map, update or delete those tickets.
+6. Continue with the next unblocked decision in the authorized scope; report completed decisions and any actual blocker when stopping.
 
 The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently.

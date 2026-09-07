@@ -864,7 +864,7 @@ test('packaged skill puts a bounded ordinary-model path before progressive featu
     'deliver <type> <candidate.json> <output.html> --quality showcase --json',
     'A non-zero exit can never be described as success',
     'Continue focused correction while the objective error count reaches a new minimum',
-    'If two consecutive rounds do not improve that best count',
+    'When a repair stalls, re-diagnose the current candidate and choose a different supported fix',
     'Do not read `renderers/shared/geometry.mjs`',
     'validate <type>',
     'supportedFixes',

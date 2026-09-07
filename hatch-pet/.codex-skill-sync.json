@@ -1,0 +1,8 @@
+{
+  "upstream": "https://github.com/ku-k-ai/my_codex_skills/tree/27aec2297b07c51559cb3f12720b9c49a4568417/hatch-pet",
+  "license": "Apache-2.0",
+  "redistribution_reviewed": true,
+  "license_file": "LICENSE.txt",
+  "adaptation": "2026-09-08: Adapted for Codex after instruction audit; preserve task scope, relevant verification, existing decisions, and environment portability.",
+  "upstream_note": "The upstream field identifies the already-published redistribution snapshot used for this adaptation; the original distribution upstream is not established."
+}

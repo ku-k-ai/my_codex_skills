@@ -1,24 +1,29 @@
 # Per-platform strategies
 
-Each platform has 2–5 strategies tried in order. Free first, paid as fallback (and only if env keys are set).
+Each platform has 2–5 strategies tried in order. Start with an actually
+available public API or browser strategy. Use a paid fallback only for a
+requested depth, when its environment key is already configured, and classify
+the response from the fields it actually contains.
 
 ---
 
 ## bluesky
 
-**Reliability: high.** Public API, free.
+**Reliability: high.** Public API, usually without authentication.
 
 ### Strategy 1 — Public AppView API (DEFAULT)
 
 URL: `https://bsky.app/profile/<handle>/post/<rkey>`
 
-```bash
+```powershell
 # Resolve handle → DID
-DID=$(curl -s "https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=<handle>" | jq -r .did)
+$did = (Invoke-RestMethod -Uri 'https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=<handle>').did
 
 # Build AT-URI and fetch the post + thread
-URI="at://${DID}/app.bsky.feed.post/<rkey>"
-curl -s "https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${URI}" | jq .
+$atUri = "at://$did/app.bsky.feed.post/<rkey>"
+$encodedUri = [Uri]::EscapeDataString($atUri)
+Invoke-RestMethod -Uri "https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=$encodedUri" |
+  ConvertTo-Json -Depth 30
 ```
 
 Returns the post + immediate parent + first-level replies in one call. Perfect for `--with-replies`.
@@ -27,18 +32,21 @@ Returns the post + immediate parent + first-level replies in one call. Perfect f
 
 ## mastodon
 
-**Reliability: high.** Public API, free, no auth.
+**Reliability: high.** Public API, no auth for public statuses.
 
 ### Strategy 1 — Status endpoint
 
 URL pattern: `https://<instance>/@<user>/<status-id>`
 
-```bash
+```powershell
 # Single status
-curl -s -H "Accept: application/json" "https://<instance>/api/v1/statuses/<status-id>"
+$headers = @{ Accept = 'application/json' }
+Invoke-RestMethod -Headers $headers -Uri 'https://<instance>/api/v1/statuses/<status-id>' |
+  ConvertTo-Json -Depth 30
 
 # With replies
-curl -s -H "Accept: application/json" "https://<instance>/api/v1/statuses/<status-id>/context"
+Invoke-RestMethod -Headers $headers -Uri 'https://<instance>/api/v1/statuses/<status-id>/context' |
+  ConvertTo-Json -Depth 30
 ```
 
 Note: instance and ID parsed from URL. Web URL `https://hachyderm.io/@user/123456` → API `https://hachyderm.io/api/v1/statuses/123456`.
@@ -47,14 +55,15 @@ Note: instance and ID parsed from URL. Web URL `https://hachyderm.io/@user/12345
 
 ## hn
 
-**Reliability: high.** Free public Algolia API.
+**Reliability: high.** Public Algolia API.
 
 ### Strategy 1 — Algolia items API
 
 URL pattern: `https://news.ycombinator.com/item?id=<id>`
 
-```bash
-curl -s "https://hn.algolia.com/api/v1/items/<id>" | jq .
+```powershell
+Invoke-RestMethod -Uri 'https://hn.algolia.com/api/v1/items/<id>' |
+  ConvertTo-Json -Depth 30
 ```
 
 Returns the item + full nested comment tree. Comments are recursive — flatten or limit depth per `--with-replies` flag.
@@ -63,24 +72,27 @@ Returns the item + full nested comment tree. Comments are recursive — flatten 
 
 ## reddit
 
-**Reliability: medium.** Free .json suffix works but rate-limited per IP (~60 req/min).
+**Reliability: medium.** The `.json` suffix may work but is rate-limited per IP (~60 req/min).
 
 ### Strategy 1 — Append `.json` to URL
 
 URL pattern: `https://www.reddit.com/r/<sub>/comments/<id>/<slug>/`
 
-```bash
-curl -s -A "Mozilla/5.0 social-fetch/0.1" "<url>.json" | jq .
+```powershell
+$headers = @{ 'User-Agent' = 'social-fetch/0.1 (+https://example.invalid/social-fetch)' }
+Invoke-RestMethod -Headers $headers -Uri '<url>.json' |
+  ConvertTo-Json -Depth 30
 ```
 
-Returns `[post, comments_tree]` as a 2-element array. Set a real User-Agent — Reddit blocks default curl UA.
+Returns `[post, comments_tree]` as a 2-element array. Set a real User-Agent — Reddit blocks a default client UA.
 
 ### Strategy 2 — Wayback Machine fallback
 
 If rate-limited or post deleted:
 
-```bash
-curl -s "https://archive.org/wayback/available?url=<encoded-url>" | jq -r '.archived_snapshots.closest.url'
+```powershell
+$wayback = Invoke-RestMethod -Uri 'https://archive.org/wayback/available?url=<encoded-url>'
+$wayback.archived_snapshots.closest.url
 ```
 
 Returns Wayback URL — re-fetch from there.
@@ -89,63 +101,76 @@ Returns Wayback URL — re-fetch from there.
 
 ## x (twitter)
 
-**Reliability: low without paid keys.** X aggressively blocks scraping.
+**Reliability: variable.** X access and field coverage depend on the endpoint,
+browser session, and current service behavior.
 
-### Strategy 1 — agent-browser preview (LIMITED)
+### Strategy 1 — available browser or API access
 
-For tweet preview only — body text and basic author info. No engagement counts, no replies, no thread.
+Use an available X endpoint or `agent-browser` session. Record which fields
+were returned; a browser response can be complete for the requested post or
+partial when the page withholds fields.
 
-```bash
+```powershell
 agent-browser open "<url>"
-sleep 3
-agent-browser snapshot 2>&1 | head -50
-# Parse the StaticText for tweet body
+Start-Sleep -Seconds 3
+agent-browser snapshot 2>&1 | Select-Object -First 50
+# Parse the returned text and metadata, then classify observed coverage
 ```
 
-Often hits "Sign up to see" modal — dismiss with first interactive button if visible.
+If a sign-up modal appears, dismiss it when the browser exposes a safe
+interactive control and then re-check the returned fields.
 
 ### Strategy 2 — Nitter mirror (UNRELIABLE)
 
 Nitter instances are frequently rate-limited or down. Try if running:
 
-```bash
+```powershell
 # Pick a known-working instance (rotate if down)
-for inst in nitter.net nitter.lacontrevoie.fr nitter.privacydev.net; do
-  CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${inst}/<user>/status/<id>")
-  if [ "$CODE" = "200" ]; then
-    curl -s "https://${inst}/<user>/status/<id>"
-    break
-  fi
-done
+$instances = @('nitter.net', 'nitter.lacontrevoie.fr', 'nitter.privacydev.net')
+foreach ($instance in $instances) {
+  try {
+    $response = Invoke-WebRequest -Uri "https://$instance/<user>/status/<id>"
+    if ($response.StatusCode -eq 200) {
+      $response.Content
+      break
+    }
+  } catch {
+    # Try the next mirror.
+  }
+}
 ```
 
 ### Strategy 3 — Wayback Machine
 
-```bash
-curl -s "https://archive.org/wayback/available?url=https://twitter.com/<user>/status/<id>" | jq -r '.archived_snapshots.closest.url'
+```powershell
+$wayback = Invoke-RestMethod -Uri 'https://archive.org/wayback/available?url=https://twitter.com/<user>/status/<id>'
+$wayback.archived_snapshots.closest.url
 ```
 
 Older tweets often cached; recent ones rarely.
 
 ### Strategy 4 — ScrapeCreators API (PAID, recommended for X)
 
-Requires `$SCRAPECREATORS_API_KEY`. If unset, skip and surface a one-time setup prompt.
+Requires `$env:SCRAPECREATORS_API_KEY`. If unset, stop at the paid boundary and
+surface the setup path; do not silently create a paid call.
 
-```bash
-curl -s "https://api.scrapecreators.com/v1/twitter/tweet?url=<encoded-url>" \
-  -H "x-api-key: $SCRAPECREATORS_API_KEY"
+```powershell
+$headers = @{ 'x-api-key' = $env:SCRAPECREATORS_API_KEY }
+Invoke-RestMethod -Headers $headers -Uri 'https://api.scrapecreators.com/v1/twitter/tweet?url=<encoded-url>' |
+  ConvertTo-Json -Depth 30
 ```
 
 Endpoint exact path may differ — verify in ScrapeCreators docs on first use.
 
 ### Strategy 5 — Apify scraper (PAID)
 
-Requires `$APIFY_API_TOKEN`. Use the `apify/twitter-scraper` actor or a community equivalent.
+Requires `$env:APIFY_API_TOKEN`. Use the `apify/twitter-scraper` actor or a community equivalent.
 
-```bash
-curl -X POST "https://api.apify.com/v2/acts/<actor-id>/run-sync-get-dataset-items?token=$APIFY_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"tweetUrls": ["<url>"], "maxItems": 1}'
+```powershell
+$body = @{ tweetUrls = @('<url>'); maxItems = 1 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -ContentType 'application/json' -Body $body `
+  -Uri "https://api.apify.com/v2/acts/<actor-id>/run-sync-get-dataset-items?token=$($env:APIFY_API_TOKEN)" |
+  ConvertTo-Json -Depth 30
 ```
 
 ---
@@ -156,15 +181,15 @@ curl -X POST "https://api.apify.com/v2/acts/<actor-id>/run-sync-get-dataset-item
 
 ### Strategy 1 — agent-browser + dismiss modal
 
-```bash
+```powershell
 agent-browser open "<url>"
-sleep 3
+Start-Sleep -Seconds 3
 # Detect signup modal and dismiss
-agent-browser snapshot -i 2>&1 | head -20
+agent-browser snapshot -i 2>&1 | Select-Object -First 20
 # If first interactive element is "Dismiss" button:
-agent-browser click @e1
-sleep 2
-agent-browser snapshot 2>&1 | head -100
+agent-browser click '@e1'
+Start-Sleep -Seconds 2
+agent-browser snapshot 2>&1 | Select-Object -First 100
 ```
 
 Works well for `linkedin.com/in/<handle>` profile pages (recent activity feed visible).
@@ -172,9 +197,10 @@ Specific post URLs (`linkedin.com/posts/...`) usually require login — fall thr
 
 ### Strategy 2 — ScrapeCreators API (PAID)
 
-```bash
-curl -s "https://api.scrapecreators.com/v1/linkedin/post?url=<encoded-url>" \
-  -H "x-api-key: $SCRAPECREATORS_API_KEY"
+```powershell
+$headers = @{ 'x-api-key' = $env:SCRAPECREATORS_API_KEY }
+Invoke-RestMethod -Headers $headers -Uri 'https://api.scrapecreators.com/v1/linkedin/post?url=<encoded-url>' |
+  ConvertTo-Json -Depth 30
 ```
 
 ### Strategy 3 — Apify (PAID)
@@ -185,21 +211,24 @@ Use `apify/linkedin-profile-scraper` or `apify/linkedin-post-scraper` actor.
 
 ## instagram
 
-**Reliability: low without paid.** Heavy anti-bot.
+**Reliability: variable.** Heavy anti-bot behavior can make browser and metadata responses sparse.
 
 ### Strategy 1 — Open Graph fallback (LIMITED — just description/image)
 
-```bash
-curl -s -A "Mozilla/5.0" "<url>" | grep -E 'og:(title|description|image)'
+```powershell
+$page = Invoke-WebRequest -UserAgent 'Mozilla/5.0 social-fetch/0.1' -Uri '<url>'
+[regex]::Matches($page.Content, '<meta.+?property="og:(title|description|image)".+?content="(.*?)"') |
+  ForEach-Object { $_.Groups[1].Value + ': ' + $_.Groups[2].Value }
 ```
 
 Returns metadata only. No engagement counts. Often blocked.
 
 ### Strategy 2 — ScrapeCreators API (PAID, recommended for IG)
 
-```bash
-curl -s "https://api.scrapecreators.com/v1/instagram/post?url=<encoded-url>" \
-  -H "x-api-key: $SCRAPECREATORS_API_KEY"
+```powershell
+$headers = @{ 'x-api-key' = $env:SCRAPECREATORS_API_KEY }
+Invoke-RestMethod -Headers $headers -Uri 'https://api.scrapecreators.com/v1/instagram/post?url=<encoded-url>' |
+  ConvertTo-Json -Depth 30
 ```
 
 ### Strategy 3 — Apify (PAID)
@@ -210,19 +239,22 @@ Use `apify/instagram-scraper` actor.
 
 ## tiktok
 
-**Reliability: low without paid.**
+**Reliability: variable.** Browser and metadata access can be sparse.
 
 ### Strategy 1 — Open Graph fallback (LIMITED)
 
-```bash
-curl -s -A "Mozilla/5.0" "<url>" | grep -E 'og:(title|description|video)'
+```powershell
+$page = Invoke-WebRequest -UserAgent 'Mozilla/5.0 social-fetch/0.1' -Uri '<url>'
+[regex]::Matches($page.Content, '<meta.+?property="og:(title|description|video)".+?content="(.*?)"') |
+  ForEach-Object { $_.Groups[1].Value + ': ' + $_.Groups[2].Value }
 ```
 
 ### Strategy 2 — ScrapeCreators API (PAID)
 
-```bash
-curl -s "https://api.scrapecreators.com/v1/tiktok/video?url=<encoded-url>" \
-  -H "x-api-key: $SCRAPECREATORS_API_KEY"
+```powershell
+$headers = @{ 'x-api-key' = $env:SCRAPECREATORS_API_KEY }
+Invoke-RestMethod -Headers $headers -Uri 'https://api.scrapecreators.com/v1/tiktok/video?url=<encoded-url>' |
+  ConvertTo-Json -Depth 30
 ```
 
 ### Strategy 3 — Apify (PAID)
@@ -233,12 +265,14 @@ Use `apify/tiktok-scraper` actor.
 
 ## threads
 
-**Reliability: low without paid.** Meta's anti-bot, like Instagram.
+**Reliability: variable.** Meta's anti-bot behavior can make browser and metadata access sparse.
 
 ### Strategy 1 — Open Graph fallback (LIMITED)
 
-```bash
-curl -s -A "Mozilla/5.0" "<url>" | grep -E 'og:(title|description)'
+```powershell
+$page = Invoke-WebRequest -UserAgent 'Mozilla/5.0 social-fetch/0.1' -Uri '<url>'
+[regex]::Matches($page.Content, '<meta.+?property="og:(title|description)".+?content="(.*?)"') |
+  ForEach-Object { $_.Groups[1].Value + ': ' + $_.Groups[2].Value }
 ```
 
 ### Strategy 2 — ScrapeCreators API (PAID, if supported)
@@ -253,7 +287,7 @@ Use a Threads scraper actor (search Apify marketplace).
 
 ## Strategy chain summary
 
-| Platform | Free strategies | Paid fallback |
+| Platform | Public/browser strategies | Paid fallback (only at the requested-depth boundary) |
 |---|---|---|
 | bluesky | Direct API | — |
 | mastodon | Direct API | — |

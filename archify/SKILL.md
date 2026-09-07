@@ -1,6 +1,6 @@
 ---
 name: archify
-description: Create polished, validated architecture, workflow, sequence, data-flow, and lifecycle/state diagrams as explorable standalone HTML with inline SVG, dark/light themes, optional trace motion, and PNG/JPEG/WebP/SVG/WebM export. Accept plain-language requirements or pasted Mermaid flowchart, sequenceDiagram, and stateDiagram input; inspect repository evidence when the diagram must reflect real code. Use when the user asks to visualize system architecture, infrastructure, cloud/security/network topology, technical workflows, API call sequences, request lifecycles, data pipelines, ETL/ELT, data lineage, state machines, or to convert/beautify Mermaid.
+description: Create validated interactive HTML architecture, workflow, sequence, data-flow, or lifecycle diagrams from plain-language requirements, Mermaid, or typed JSON; use for system topology, API flows, pipelines, and state transitions.
 license: MIT
 metadata:
   version: "2.16"
@@ -21,18 +21,18 @@ Use this bounded path for ordinary generation. Do not read the optional Viewer R
 3. Artifact first: the next tool action must write the candidate. Write the candidate before inspecting renderer internals. Do not plan exact coordinates in prose. Start with one clear main path, short side branches, sparse labels, and at most 12 primary nodes. Set `meta.quality_profile` to `"showcase"` unless the user explicitly requests a dense `standard` map. Start with automatic routes and labels. Do not add `via`, `channelX`, `channelY`, or `labelAt` before a diagnostic calls for one; apply at most one diagnosed geometry control per repair.
 4. Validate after every candidate edit and immediately before handoff:
 
-   ```bash
+   ```powershell
    node bin/archify.mjs validate <type> <candidate.json> --quality showcase --json
    ```
 
    A receipt with only 4 artifact checks is basic validation, never showcase acceptance. A showcase pass must report all 9 artifact checks with 0 composition errors and 0 warnings. If the candidate omits or misspells the exact `meta.quality_profile` field, fix it before geometry. For a workflow v2 geometry diagnosis, run `node bin/archify.mjs validate workflow <candidate.json> --layout-json` and use the stable compiler receipt; solver internals are not authoring controls. A passing final validation freezes the candidate: never edit it afterward.
 5. For a delivered HTML, `deliver` is the final acceptance command:
 
-   ```bash
+   ```powershell
    node bin/archify.mjs deliver <type> <candidate.json> <output.html> --quality showcase --json
    ```
 
-   A non-zero exit can never be described as success. A failed delivery preserves any previous output, so do not run `visual-check` on that path: it would inspect the stale last-good artifact, not the failed candidate. If validation fails, change only the diagnosed `subject`, verify `evidence`, choose from `supportedFixes`, and rerun. Continue focused correction while the objective error count reaches a new minimum. If two consecutive rounds do not improve that best count, stop and report the unresolved diagnostics truthfully.
+   A non-zero exit can never be described as success. A failed delivery preserves any previous output, so do not run `visual-check` on that path: it would inspect the stale last-good artifact, not the failed candidate. If validation fails, change only the diagnosed `subject`, verify `evidence`, choose from `supportedFixes`, and rerun. Continue focused correction while the objective error count reaches a new minimum. When a repair stalls, re-diagnose the current candidate and choose a different supported fix; after two consecutive non-improving diagnostic rounds, stop and report the unresolved diagnostics truthfully.
 
 ## Update awareness
 
@@ -99,7 +99,7 @@ Use `validate` during repair and `deliver` once for final acceptance. Delivery f
 
 After delivery, collect bounded desktop evidence without modifying or rerendering the trusted HTML:
 
-```bash
+```powershell
 node bin/archify.mjs visual-check <output.html> --json
 ```
 
@@ -107,7 +107,7 @@ node bin/archify.mjs visual-check <output.html> --json
 
 Add `--open` only when the user wants an immediate local preview. For an active desktop authoring loop, the optional command is:
 
-```bash
+```powershell
 node bin/archify.mjs preview <type> <input>.json <output>.html --quality showcase
 ```
 
@@ -123,7 +123,7 @@ Read `references/viewer-runtime.md` only when the user explicitly asks for Share
 
 No install is required inside the skill package. Verify with:
 
-```bash
+```powershell
 node bin/archify.mjs doctor
 node bin/archify.mjs demo <output-directory>
 ```

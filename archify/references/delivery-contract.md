@@ -4,7 +4,7 @@
 
 Use `validate` after every candidate edit. Use final atomic delivery only after the candidate is frozen:
 
-```bash
+```powershell
 node bin/archify.mjs deliver <type> <candidate.json> <output.html> --quality showcase --json
 ```
 
@@ -23,7 +23,7 @@ The deterministic receipt proves byte identity and automated checks. Never claim
 After delivery, inspect the exact trusted HTML without rerendering or modifying
 it:
 
-```bash
+```powershell
 node bin/archify.mjs visual-check <output.html> --json
 ```
 
@@ -48,7 +48,7 @@ Add `--open` only when the user wants an immediate local preview. It runs after 
 
 For an active desktop authoring loop only:
 
-```bash
+```powershell
 node bin/archify.mjs preview <type> <input>.json <output>.html --quality showcase
 ```
 
@@ -70,9 +70,9 @@ Report exactly one truthful status:
 - `visual_review: skipped (image reader unavailable)` — when no capable visual surface exists.
 - `visual_review: failed` — with the concrete visible defect.
 
-Use `correction_rounds: 0`, `correction_rounds: 1`, or `correction_rounds: 2`; never exceed a maximum of two focused correction rounds. Never report `visual_review: passed` without inspecting the artifact.
+Keep a count in `correction_rounds`. When a visual defect is found, repair the authored source, re-run validation and delivery, and inspect the resulting trusted HTML again. Continue while each round improves the observed defect, regardless of the count. If a round stalls or worsens, re-diagnose the current artifact, choose a new bounded repair hypothesis, and try again; after two consecutive non-improving rounds, stop with `visual_review: failed` and report the concrete defect. Never report `visual_review: passed` without inspecting the final artifact.
 
-If visual review changes the candidate, validation and delivery must run again because the prior frozen specification receipt is no longer current.
+If visual review changes the candidate, validation and delivery must run again because the prior frozen specification receipt is no longer current. If validation or delivery cannot produce a trusted current artifact, stop and report failure; do not reuse a previous last-good artifact as a success claim.
 
 ## Handoff receipt
 
@@ -85,7 +85,7 @@ specification_sha256: <receipt value>
 artifact_sha256: <receipt value>
 validation: 9/9 showcase, 0 errors, 0 warnings
 visual_review: passed|skipped (image reader unavailable)|failed
-correction_rounds: 0|1|2
+correction_rounds: non-negative integer
 ```
 
 Opening, preview status, Share Cards, and other viewer exports are not validation claims.

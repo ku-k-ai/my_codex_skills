@@ -8,11 +8,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const skill = readFileSync(path.join(here, '..', 'SKILL.md'), 'utf8');
 const delivery = readFileSync(path.join(here, '..', 'references', 'delivery-contract.md'), 'utf8');
 
-test('skill requires a bounded and truthful perceptual delivery receipt', () => {
+test('skill allows improving visual corrections and keeps a truthful receipt', () => {
   assert.match(delivery, /visual_review: passed/);
   assert.match(delivery, /visual_review: skipped \(image reader unavailable\)/);
-  assert.match(delivery, /correction_rounds: [0-2]/);
-  assert.match(delivery, /maximum of two focused correction rounds/i);
+  assert.match(delivery, /correction_rounds: non-negative integer/);
+  assert.match(delivery, /Continue while each round improves the observed defect/);
+  assert.match(delivery, /after two consecutive non-improving rounds/);
   assert.match(delivery, /never report `visual_review: passed` without inspecting/i);
 });
 

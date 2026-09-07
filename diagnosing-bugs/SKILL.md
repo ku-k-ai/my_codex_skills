@@ -5,7 +5,7 @@ description: Diagnosis loop for hard bugs and performance regressions. Use when 
 
 # Diagnosing Bugs
 
-A discipline for hard bugs. Skip phases only when explicitly justified.
+A discipline for hard bugs. Choose the phases that resolve the current uncertainty, and distinguish observed failures from provisional explanations.
 
 When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 
@@ -17,7 +17,7 @@ If the redacted output is not enough to diagnose the bug, say so and ask the use
 
 ## Phase 1: Build a feedback loop
 
-**This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug (one that goes red on _this_ bug), you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
+Prefer a **tight** pass/fail signal for the reported bug. Bisection, hypothesis testing and instrumentation become easier with reproducible evidence. Read relevant code, logs and traces to identify the conditions needed to construct that signal.
 
 Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give up.**
 
@@ -32,7 +32,7 @@ Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give
 7. **Property / fuzz loop.** If the bug is "sometimes wrong output", run 1000 random inputs and look for the failure mode.
 8. **Bisection harness.** If the bug appeared between two known states (commit, dataset, version), automate "boot at state X, check, repeat" so you can `git bisect run` it.
 9. **Differential loop.** Run the same input through old-version vs new-version (or two configs) and diff outputs.
-10. **HITL bash script.** Last resort. If a human must click, drive _them_ with `scripts/hitl-loop.template.sh` so the loop is still structured. Captured output feeds back to you.
+10. **Human-assisted loop.** If a human must click, give precise steps and capture the result. `scripts/hitl-loop.template.sh` is an optional helper only when Bash is available; otherwise use the target shell or written steps.
 
 Build the right feedback loop, and the bug is 90% fixed.
 
@@ -52,22 +52,22 @@ The goal is not a clean repro but a **higher reproduction rate**. Loop the trigg
 
 ### When you genuinely cannot build a loop
 
-Stop and say so explicitly. List what you tried. Ask the user for: (a) access to whatever environment reproduces it, (b) a redacted captured artifact (HAR file, log dump, core dump, screen recording with timestamps), or (c) permission to add temporary production instrumentation. Do **not** proceed to hypothesise without a loop.
+State what could not be reproduced and what you tried. Continue useful read-only investigation and rank provisional hypotheses from the available code, logs and traces. Ask only for the missing artifact or access needed for the next blocked check; production instrumentation requires authorization. Keep independent investigation moving and clearly distinguish a proposed cause or fix from a reproduced and verified one.
 
 ### Completion criterion: a tight loop that goes red
 
-Phase 1 is done when the loop is **tight** and **red-capable**: you can name **one command** (a script path, a test invocation, a curl) that you have **already run at least once** (show the invocation and its output, redacted), and that is:
+When a runnable reproduction is available, record a command or procedure already tried (with redacted output) and assess whether it is:
 
 - [ ] **Red-capable**: it drives the actual bug code path and asserts the **user's exact symptom**, so it can go red on this bug and green once fixed. Not "runs without erroring"; it must be able to _catch this specific bug_.
 - [ ] **Deterministic**: same verdict every run (flaky bugs: a pinned, high reproduction rate, per above).
 - [ ] **Fast**: seconds, not minutes.
-- [ ] **Agent-runnable**: you can run it unattended; a human in the loop only via `scripts/hitl-loop.template.sh`.
+- [ ] **Repeatable**: the agent or user can follow the same procedure and capture the result.
 
-If you catch yourself reading code to build a theory before this command exists, **stop: jumping straight to a hypothesis is the exact failure this skill prevents.** No red-capable command, no Phase 2.
+If reproduction remains unavailable, record that limitation and continue with the evidence-based investigation above. A hypothesis can guide reproduction; it is not proof that the symptom is fixed.
 
 ## Phase 2: Reproduce + minimise
 
-Run the loop. Watch it go red as the bug appears.
+If a loop is available, run it and capture the failure. Otherwise use captured evidence to narrow the conditions, keeping reproduction status explicit.
 
 Confirm:
 
@@ -81,13 +81,13 @@ Once it's red, shrink the repro to the **smallest scenario that still goes red**
 
 Why bother: a minimal repro shrinks the hypothesis space in Phase 3 (fewer moving parts left to suspect) and becomes the clean regression test in Phase 5.
 
-Done when **every remaining element is load-bearing**: removing any one of them makes the loop go green.
+Minimise until the scenario isolates the suspected cause and is practical to rerun; further reduction is optional if it would not change the diagnosis or regression protection.
 
-Do not proceed until you have reproduced **and** minimised.
+Continue investigating while reproduction is incomplete. Preserve the original symptom as the final verification target.
 
 ## Phase 3: Hypothesise
 
-Generate **3–5 ranked hypotheses** before testing any of them. Single-hypothesis generation anchors on the first plausible idea.
+Rank plausible hypotheses from the evidence, considering alternatives when the cause is ambiguous. Choose the next check for its ability to distinguish them; do not invent extra hypotheses to meet a count.
 
 Each hypothesis must be **falsifiable**: state the prediction it makes.
 
@@ -107,7 +107,7 @@ Tool preference:
 2. **Targeted logs** at the boundaries that distinguish hypotheses.
 3. Never "log everything and grep".
 
-**Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
+**Tag temporary debug logs** with a unique prefix, e.g. `[DEBUG-a4f2]`, so a targeted `rg` search can verify cleanup.
 
 **Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
 
@@ -131,8 +131,8 @@ If a correct seam exists:
 
 Required before declaring done:
 
-- [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
+- [ ] Re-run the original reproduction when available; otherwise explicitly report that the original symptom remains unverified and what evidence is still needed
 - [ ] Regression test passes (or absence of seam is documented)
-- [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
-- [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
-- [ ] The hypothesis that turned out correct is stated in the commit / PR message, so the next debugger learns
+- [ ] Temporary instrumentation introduced for this investigation is removed (search its prefix with `rg`)
+- [ ] This investigation's throwaway artifacts are removed or kept in a clearly marked debug location, preserving pre-existing user artifacts
+- [ ] Findings and verification limits are stated in the result and, when created, the commit / PR message

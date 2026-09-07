@@ -55,7 +55,7 @@ Send them the file, or open it for them. They'll click through the walkthroughs 
 
 ### 5. Capture the answer and the prototype
 
-Once the prototype has answered its question, capture the answer, then capture the prototype the way the [SKILL](SKILL.md) describes. The logic-specific mapping: the validated reducer / machine / function set lifts into the real module (the decision, absorbed); the HTML shell rides along to the throwaway branch that keeps the prototype as a primary source, and being one self-contained file, it stays trivially re-runnable there.
+Deliver the runnable HTML and the answer following the [SKILL](SKILL.md) completion boundary. If production implementation is also requested, adapt the validated logic into the real module with appropriate tests; keep the HTML as a separate reference when useful. A prototype-only request ends with the artifact and findings, without requiring a branch, commit or issue update.
 
 ## Anti-patterns
 

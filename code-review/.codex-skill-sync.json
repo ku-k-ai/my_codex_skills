@@ -1,0 +1,7 @@
+{
+  "upstream": "https://github.com/mattpocock/skills",
+  "license": "MIT",
+  "redistribution_reviewed": true,
+  "license_file": "LICENSE.upstream",
+  "adaptation": "2026-09-08: Adapted for Codex after instruction audit; preserve task scope, relevant verification, existing decisions, and environment portability."
+}

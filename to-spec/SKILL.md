@@ -1,12 +1,11 @@
 ---
 name: to-spec
 description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
-disable-model-invocation: true
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
+This skill synthesizes the current conversation and relevant codebase evidence into a spec. Reuse settled decisions. Mark unresolved details explicitly and ask only when a material ambiguity prevents an accurate spec.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+Use the existing issue tracker and triage vocabulary when supplied. If the publication destination is unavailable, finish the spec locally and identify the missing destination rather than requiring repository setup before drafting.
 
 ## Process
 
@@ -14,9 +13,9 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
-Check with the user that these seams match their expectations.
+Reuse existing or already-agreed testing boundaries without reconfirmation. Describe a new boundary as a proposal if it needs a product or scope decision; continue synthesizing the settled parts.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the spec using the relevant parts of the template below. Publish to the configured tracker when that action is authorized. Apply `ready-for-agent` only if no unresolved decision blocks implementation; otherwise use the tracker's existing draft or blocked convention.
 
 <spec-template>
 
@@ -30,7 +29,7 @@ The solution to the problem, from the user's perspective.
 
 ## User Stories
 
-A LONG, numbered list of user stories. Each user story should be in the format of:
+A concise numbered list covering the agreed user behaviors. Where useful, express a story as:
 
 1. As an <actor>, I want a <feature>, so that <benefit>
 
@@ -38,7 +37,7 @@ A LONG, numbered list of user stories. Each user story should be in the format o
 1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
 </user-story-example>
 
-This list of user stories should be extremely extensive and cover all aspects of the feature.
+Cover the agreed scope without duplicating stories or inventing features to fill the template.
 
 ## Implementation Decisions
 

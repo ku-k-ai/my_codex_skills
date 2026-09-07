@@ -14,6 +14,13 @@ Same shape returned for every platform. Fields with no equivalent on a platform 
     "direct-api" | "agent-browser" | "open-graph" | "nitter"
     | "wayback" | "scrapecreators" | "apify",
 
+  "completeness": {
+    "status": "complete" | "partial", // relative to this request
+    "requested": string[],              // post, author, thread, replies, media, etc.
+    "available": string[],              // sections observed in the response
+    "missing": string[]                 // requested sections not observed
+  },
+
   "author": {
     "handle": string | null,      // @username
     "name": string | null,        // display name
@@ -26,7 +33,7 @@ Same shape returned for every platform. Fields with no equivalent on a platform 
   "posted_at": ISO8601 | null,
   "edited_at": ISO8601 | null,
 
-  "text": string,                 // post body, plain text. Markdown OK if source supports it.
+  "text": string | null,          // post body, plain text; null when not observed
   "html": string | null,          // original HTML if scraped (Mastodon, etc.)
   "language": string | null,      // ISO 639-1 if detected
 
@@ -84,21 +91,23 @@ Same shape returned for every platform. Fields with no equivalent on a platform 
 
 ## Platform field-coverage matrix
 
-What each platform typically provides on a successful free-strategy fetch:
+Typical field availability is only a planning aid. The `completeness` object is
+computed from the response actually retrieved; a source label never turns a
+missing field into a present one.
 
-| Field | bluesky | mastodon | hn | reddit | x (free) | x (paid) | linkedin (free) | linkedin (paid) | ig (paid) | tiktok (paid) | threads (paid) |
+| Field | bluesky | mastodon | hn | reddit | x (public/browser) | x (paid) | linkedin (browser) | linkedin (paid) | ig (paid) | tiktok (paid) | threads (paid) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| author.handle | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| author.verified | — | — | — | — | partial | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| author.follower_count | ✅ | ✅ | — | — | — | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| posted_at | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
-| text | ✅ | ✅ | ✅ | ✅ | partial | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
-| media | ✅ | ✅ | — | ✅ | — | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| engagement.likes | ✅ | ✅ | ✅ (score) | ✅ | — | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| engagement.reposts | ✅ | ✅ | — | — | — | ✅ | — | ✅ | — | ✅ | ✅ |
-| engagement.views | — | — | — | — | — | ✅ | — | partial | partial | ✅ | partial |
-| replies | ✅ | ✅ | ✅ | ✅ | — | ✅ | — | partial | — | partial | partial |
-| thread (own author) | ✅ | ✅ | n/a | n/a | — | ✅ | — | ✅ | — | — | partial |
+| author.handle | ✅ | ✅ | ✅ | ✅ | varies | varies | varies | varies | varies | varies | varies |
+| author.verified | — | — | — | — | varies | varies | varies | varies | varies | varies | varies |
+| author.follower_count | ✅ | ✅ | — | — | varies | varies | varies | varies | varies | varies | varies |
+| posted_at | ✅ | ✅ | ✅ | ✅ | varies | varies | varies | varies | varies | varies | varies |
+| text | ✅ | ✅ | ✅ | ✅ | varies | varies | varies | varies | varies | varies | varies |
+| media | ✅ | ✅ | — | ✅ | varies | varies | varies | varies | varies | varies | varies |
+| engagement.likes | ✅ | ✅ | ✅ (score) | ✅ | varies | varies | varies | varies | varies | varies | varies |
+| engagement.reposts | ✅ | ✅ | — | — | varies | varies | varies | varies | varies | varies | varies |
+| engagement.views | — | — | — | — | varies | varies | varies | varies | varies | varies | varies |
+| replies | ✅ | ✅ | ✅ | ✅ | varies | varies | varies | varies | varies | varies | varies |
+| thread (own author) | ✅ | ✅ | n/a | n/a | varies | varies | varies | varies | varies | varies | varies |
 
 `partial` = sometimes available depending on the post / scraping conditions.
 
@@ -126,13 +135,19 @@ What each platform typically provides on a successful free-strategy fetch:
 }
 ```
 
-### x — partial (free strategy: agent-browser preview)
+### x — partial (browser strategy; fields observed in this response)
 
 ```json
 {
   "platform": "x",
   "url": "https://x.com/example/status/1234567890",
   "raw_source": "agent-browser",
+  "completeness": {
+    "status": "partial",
+    "requested": ["post", "author", "thread"],
+    "available": ["post", "author"],
+    "missing": ["thread"]
+  },
   "author": {
     "handle": "@example",
     "name": "Example User",
@@ -149,7 +164,10 @@ What each platform typically provides on a successful free-strategy fetch:
 }
 ```
 
-Note `thread: []` despite `is_thread: true` — free strategy can detect a thread exists but can't fetch the other posts. Use paid fallback or visit each thread URL directly.
+This result is partial because the requested thread siblings were not observed.
+The same browser strategy can be complete when it returns every requested item,
+and a paid strategy can still be partial. Classify from `available` and `missing`,
+not from the platform or price of the strategy.
 
 ### hn — full
 
@@ -182,4 +200,8 @@ When the skill completes, output:
 2. **Path to the JSON output** if `--save` flag set (saved to `~/Documents/social-fetches/<platform>-<id>.json`)
 3. **Inline JSON** in chat for the calling skill / the user to use
 
-If only partial data was retrievable (free strategy on X/LinkedIn/IG/TikTok), surface it clearly: *"Free strategy returned author + text + engagement. Replies + full thread require `$SCRAPECREATORS_API_KEY`. See references/auth-keys.md to set up."*
+If only partial data was retrievable, name the exact fields in `completeness.missing`
+and the strategies attempted. If a requested thread or reply tree would require
+a paid fallback, stop at the paid boundary unless the user has authorized that
+depth and the required key is configured; never imply that a paid call is a
+guaranteed completion.
